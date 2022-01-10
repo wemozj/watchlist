@@ -1,25 +1,17 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>{{ user.name }}'s Watchlist</title>
-    <link rel="icon" href="{{ url_for('static', filename='favicon_64x64.png') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" type="text/css">
-</head>
-<body>
-    <h2><img alt="Avatar" class="avatar" src="{{ url_for('static', filename='images/favicon.png') }}">{{ user.name }}'s Watchlist</h2>
+{% extends 'base.html' %}
 
-    <p>{ movies|length }} Titles</p>
-    <ul class="movie-list">
-        {% for movie in movies %} {# 迭代 movies 变量 #}
-        <li>{{ movie.title }} - {{ movie.year }}</li> {# 等同于 movie['title'] #}
-        {% endfor %} {# 使用 endfor 标签结束 for 语句 #}
-    </ul>
+{% block content %}
+<p>{{ movies|length }} Titles</p>
+<ul class="movie-list">
+    {% for movie in movies %}
+    <li>{{ movie.title }} - {{ movie.year }}
+        <span class="float-right">
+            <a class="imdb" href="https://www.imdb.com/find?q={{ movie.title }}" target="_blank" title="Find this movie on IMDb">IMDb</a>
 
-    <img alt="Avatar" src="{{ url_for('static', filename='images/totoro.gif') }}">
+        </span>
+    </li>
+    {% endfor %}
+</ul>
+<img alt="Walking Totoro" class="totoro" src="{{ url_for('static', filename='images/totoro.gif') }}" title="to~to~ro~">
+{% endblock %}
 
-    <footer>
-        <small>&copy; 2022 <a href="http://helloflask.com/tutorial">HelloFlask</a></small>
-    </footer>
-</body>
-</html>
