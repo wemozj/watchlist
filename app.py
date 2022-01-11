@@ -1,7 +1,7 @@
 import os
 import sys
 
-from flask import Flask, url_for, render_template
+from flask import Flask, url_for, render_template, request, flash, redirect
 from flask_sqlalchemy import SQLAlchemy
 
 WIN = sys.platform.startswith('win')
@@ -13,6 +13,18 @@ else:  # 否则使用四个斜线
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////' + os.path.join(app.root_path, 'data.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # 关闭对模型修改的监控
+app.config['SECRET_KEY'] = 'dev'
+
+from datetime import timedelta
+
+# 自动重载模板文件
+app.jinja_env.auto_reload = True
+app.config['TEMPLATES_AUTO_RELOAD'] = True
+
+# 设置静态文件缓存过期时间
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = timedelta(seconds=1)
+
+
 
 db = SQLAlchemy(app)  # 初始化扩展类，传入程序实例
 
@@ -46,7 +58,7 @@ def forge():
     """Generate fake data."""
     db.create_all()
     # 全局的两个变量移动到这个函数内
-    name = 'Grey Li'
+    name = 'zhuzhu'
     movies = [
         {'title': 'My Neighbor Totoro', 'year': '1988'},
         {'title': 'Dead Poets Society', 'year': '1989'},
@@ -68,36 +80,31 @@ def forge():
     click.echo('Done.')
 
 
-# name = 'Zhu Zhu'
-# movies = [
-#     {'title': 'My Neighbor Totoro', 'year': '1988'},
-#     {'title': 'Dead Poets Society', 'year': '1989'},
-#     {'title': 'A Perfect World', 'year': '1993'},
-#     {'title': 'Leon', 'year': '1994'},
-#     {'title': 'Mahjong', 'year': '1996'},
-#     {'title': 'Swallowtail Butterfly', 'year': '1996'},
-#     {'title': 'King of Comedy', 'year': '1999'},
-#     {'title': 'Devils on the Doorstep', 'year': '1999'},
-#     {'title': 'WALL-E', 'year': '2008'},
-#     {'title': 'The Pork of Music', 'year': '2012'},
-# ]
 @app.context_processor
 def inject_user():  # 函数名可以随意修改
     user = User.query.first()
     return dict(user=user)  # 需要{'user': user}
 
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
-    user = User.query.first()  # 读取用户记录
-    movies = Movie.query.all()  # 读取所有电影记录
-    # return 'Welcome to My Watchlist!'
-    return render_template('index.html', movies=movies)
+    if request.method == 'POST':
+        title = request.form.get('title')
+        year = request.form.get('year')
+        if not title or not year or len(year) > 4 or len(title) > 60:
+            flash('Invalid input.', 'error')  # 显示错误提示
+            return redirect(url_for('index'))
+        # 保存表达数据到数据库
+        movie = Movie(title=title, year=year)
+        db.session.add(movie)
+        db.session.commit()
+        flash('Item created.')  # 显示成功创建的提示
+        return redirect(url_for('index'))  # 重定向回主页
 
+    user = User.query.first()
+    movies = Movie.query.all()
 
-# @app.route('/html')
-# def show():
-#     return '<h1>Hello zhuzhu!</h1><img src="http://helloflask.com/totoro.gif">'
+    return render_template('index.html',  user=user, movies=movies)
 
 
 @app.route('/user/<name>')
