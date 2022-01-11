@@ -107,9 +107,32 @@ def index():
     return render_template('index.html',  user=user, movies=movies)
 
 
-@app.route('/user/<name>')
-def user_page(name):
-    return 'User %s' % name
+@app.route('/movie/edit/<int:movie_id>', methods=['GET', 'POST'])
+def edit(movie_id):
+    movie = Movie.query.get_or_404(movie_id)  # 返回 movie_id 对应的记录，没找到则返回 404 错误响应
+
+    if request.method == 'POST':
+        title = request.form['title']
+        year = request.form['year']
+        if not title or not year or len(year) > 4 or len(title) > 60:
+            flash('Invalid input.', 'error')  # 显示错误提示
+            return redirect(url_for('index'))
+        movie.title = title  # 更新
+        movie.year = year
+        db.session.commit()  # 提交数据库会话
+        flash("Item updated.")
+        return redirect(url_for('index'))
+
+    return render_template('edit.html', movie=movie)
+
+
+@app.route('/movie/delete/<int:movie_id>', methods=['POST'])
+def delete(movie_id):
+    movie = Movie.query.get_or_404(movie_id)  # 获取电影记录
+    db.session.delete(movie)  # 删除记录
+    db.session.commit()
+    flash('Item deleted.')
+    return redirect(url_for('index'))  # 重定向主页
 
 
 @app.route('/test')
