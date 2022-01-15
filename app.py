@@ -1,6 +1,5 @@
 import os
 import sys
-import time
 
 import click
 from flask import Flask, url_for, render_template, request, flash, redirect
@@ -8,32 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user, UserMixin
 
-WIN = sys.platform.startswith('win')
-if WIN:  # 如果是 Windows 系统，使用三个斜线
-    prefix = 'sqlite:///'
-else:  # 否则使用四个斜线
-    prefix = 'sqlite:////'
 
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////' + os.path.join(app.root_path, 'data.db')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # 关闭对模型修改的监控
-app.config['SECRET_KEY'] = 'dev'
-
-from datetime import timedelta
-
-# 自动重载模板文件
-app.jinja_env.auto_reload = True
-app.config['TEMPLATES_AUTO_RELOAD'] = True
-
-# 设置静态文件缓存过期时间
-app.config['SEND_FILE_MAX_AGE_DEFAULT'] = timedelta(seconds=1)
-
-
-db = SQLAlchemy(app)  # 初始化扩展类，传入程序实例
-
-
-login_manager = LoginManager(app)  # 实例化扩展类
-login_manager.login_view = 'login'  # 未登录的用户范围，会重定向到登录页面
 
 
 @login_manager.user_loader

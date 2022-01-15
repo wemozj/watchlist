@@ -10,7 +10,18 @@
     {% endblock %}
 </head>
 <body>
-    {% for message in get_flashed_messages() %}
+    {% for message in get_flashed_messages() %}{% extends 'base.html' %}
+
+{% block content %}
+<ul class="movie-list">
+    <li>
+        Internal Server Error - 500
+        <span class="float-right">
+            <a href="{{ url_for('index') }}">Go Back</a>
+        </span>
+    </li>
+</ul>
+{% endblock %}
         <div class="alert">{{ message }}</div>
     {% endfor %}
     <h2>
