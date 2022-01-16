@@ -15,6 +15,7 @@ from watchlist.models import User, Movie
 
 
 @app.route('/', methods=['GET', 'POST'])
+@login_required
 def index():
     if request.method == 'POST':
         if not current_user.is_authenticated:
